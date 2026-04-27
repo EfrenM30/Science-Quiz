@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Quiz — Earth & Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --correct: #34d399;
+    --wrong: #f87171;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: rgba(255,255,255,0.08);
+    --glow: 0 0 30px rgba(56,189,248,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 92% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 55% 50%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(2px 2px at 18% 60%, rgba(56,189,248,0.4) 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 10%, rgba(129,140,248,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 70px 20px 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 500px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .divider {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border) 30%, var(--accent) 50%, var(--border) 70%, transparent);
+    position: relative;
+    z-index: 1;
+  }
+
+  .quiz-container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow);
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0.6;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-card:nth-child(1) { animation-delay: 0.05s; }
+  .question-card:nth-child(2) { animation-delay: 0.1s; }
+  .question-card:nth-child(3) { animation-delay: 0.15s; }
+  .question-card:nth-child(4) { animation-delay: 0.2s; }
+  .question-card:nth-child(5) { animation-delay: 0.25s; }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .q-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 8px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .q-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--accent2);
+    background: rgba(129,140,248,0.1);
+    border: 1px solid rgba(129,140,248,0.2);
+    border-radius: 8px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  .q-text {
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .options {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .option:hover {
+    border-color: rgba(56,189,248,0.3);
+    background: rgba(56,189,248,0.05);
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: rgba(52,211,153,0.08);
+  }
+
+  .option.wrong {
+    border-color: var(--wrong);
+    background: rgba(248,113,113,0.06);
+    opacity: 0.6;
+  }
+
+  .option-letter {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .option.correct .option-letter {
+    background: rgba(52,211,153,0.2);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+
+  .option.wrong .option-letter {
+    background: rgba(248,113,113,0.15);
+    border-color: var(--wrong);
+    color: var(--wrong);
+  }
+
+  .option-text {
+    font-size: 0.92rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .option.correct .option-text {
+    color: var(--correct);
+    font-weight: 500;
+  }
+
+  .answer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--correct);
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 8px;
+    padding: 6px 14px;
+    margin-bottom: 14px;
+  }
+
+  .answer-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .explanation {
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .explanation strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Image question special card */
+  .img-question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .img-question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+    opacity: 0.6;
+  }
+
+  .weather-map-placeholder {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f2d4a 50%, #1a3f5c 100%);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 16px 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    position: relative;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .weather-map-placeholder .map-icon {
+    font-size: 2rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin: 48px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .bonus-card {
+    background: linear-gradient(135deg, rgba(129,140,248,0.08), rgba(56,189,248,0.05));
+    border: 1px solid rgba(129,140,248,0.2);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bonus-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    opacity: 0.7;
+  }
+
+  .bonus-q {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .bonus-a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--correct);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .bonus-exp {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+    border-left: 2px solid rgba(129,140,248,0.4);
+    padding-left: 14px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 40px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 100;
+    transition: width 0.3s;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 10px rgba(56,189,248,0.5);
+  }
+
+  @media (max-width: 600px) {
+    .question-card, .img-question-card, .bonus-card {
+      padding: 22px 20px;
+    }
+    .q-header { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width: 100%"></div>
+
+<div class="hero">
+  <div class="hero-label">🔭 Study Guide</div>
+  <h1>Earth &amp; Space<br>Science Quiz</h1>
+  <p>Review all questions, answers, and explanations. Green options show the correct answer for each question.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">24</div>
+      <div class="stat-label">Questions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Bonus Q&amp;A</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">8</div>
+      <div class="stat-label">Topics</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="quiz-container">
+
+  <!-- Q1 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 01</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">Which high-temperature range is <strong>most likely</strong> represented by the shaded area labeled 1 on the weather map?</p>
+    </div>
+    <div class="weather-map-placeholder">
+      <div class="map-icon">🗺️</div>
+      <span>Weather Map — Shaded Region Labeled "1" (Central/Southern U.S.)</span>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">60°F to 69°F</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">70°F to 79°F</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">80°F to 89°F</span></div>
+      <div class="option correct"><span class="option-letter">D</span><span class="option-text">90°F to 99°F</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 90°F to 99°F</div>
+    <div class="explanation">The shaded area labeled "1" covers the central/southern United States, which includes cities like Houston (91/76) and Denver (89/60). The warm orange shading and nearby high temperatures indicate this region falls in the <strong>90°F–99°F</strong> range.</div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 02</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">Which term defines a star system with two stars?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">Binary star system</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Eclipse star system</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Open cluster star system</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Globular cluster star system</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Binary star system</div>
+    <div class="explanation">A <strong>binary star system</strong> consists of two stars orbiting a common center of mass. "Binary" means two. Open and globular clusters refer to groups of many stars, and "eclipse star system" is not a real term.</div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 03</span>
+      <span class="q-tag">Earth Science</span>
+      <p class="q-text">Which correctly lists the three types of rock particles that make up soil?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Air, clay, and sand</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Clay, water, and silt</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Sand, clay, and silt</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Silt, water, and air</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Sand, clay, and silt</div>
+    <div class="explanation">Soil is composed of three types of rock (mineral) particles: <strong>sand</strong> (largest particles), <strong>silt</strong> (medium), and <strong>clay</strong> (smallest). Air and water are also found in soil but are not rock particles.</div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 04</span>
+      <span class="q-tag">Weather</span>
+      <p class="q-text">Which process contributes to the formation of tornadoes?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Water droplets freeze, giving off energy.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">The storm begins to rotate around a central eye.</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">The Coriolis effect creates the spin of the storm.</span></div>
+      <div class="option correct"><span class="option-letter">D</span><span class="option-text">Warm air rises, resulting in a decrease in air pressure.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Warm air rises, resulting in a decrease in air pressure.</div>
+    <div class="explanation">Tornadoes form when <strong>warm, moist air rises rapidly</strong>, creating low pressure near the surface. This upward motion combined with wind shear causes the air to rotate and eventually form a funnel cloud. A "central eye" is a hurricane feature, not a tornado's.</div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 05</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">What term describes the moon's path around Earth?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Eclipse</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Phase</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Revolution</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Rotation</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Revolution</div>
+    <div class="explanation"><strong>Revolution</strong> is the orbital path one body takes around another. The Moon revolves around Earth roughly every 27.3 days. <em>Rotation</em> refers to spinning on an axis; <em>phases</em> are the Moon's appearance changes; an <em>eclipse</em> is when one body blocks another's light.</div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 06</span>
+      <span class="q-tag">Weather</span>
+      <p class="q-text">Which event is associated with tornadoes?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Sea levels rising due to high waves</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Coastal flooding due to storm surge</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Paths of damage up to 50 miles long</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Wind and rain lasting for several days</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Paths of damage up to 50 miles long</div>
+    <div class="explanation">Tornadoes are known for leaving narrow but intense <strong>damage paths that can extend up to 50 miles (or more)</strong>. Storm surges, coastal flooding, and multi-day storms are characteristics of hurricanes, not tornadoes.</div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 07</span>
+      <span class="q-tag">Atmosphere</span>
+      <p class="q-text">Which statement accurately describes the relationship between air pressure, air density, or altitude?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">As altitude increases, pressure increases.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">As altitude increases, air density increases.</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Air pressure and density are lowest at sea level.</span></div>
+      <div class="option correct"><span class="option-letter">D</span><span class="option-text">Denser air exerts more pressure than less dense air.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Denser air exerts more pressure than less dense air.</div>
+    <div class="explanation">Air pressure is caused by the weight of air molecules. <strong>Denser air contains more molecules</strong> and therefore exerts greater pressure. At higher altitudes, air is less dense and pressure is lower — the opposite of options A and B.</div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 08</span>
+      <span class="q-tag">Weather</span>
+      <p class="q-text">Which type of cloud forms close to the ground when the temperature is just above the dew point?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Cirrus</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Cumulus</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Fog</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Stratus</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Fog</div>
+    <div class="explanation"><strong>Fog</strong> is essentially a cloud that forms at ground level when air temperature drops to just above the dew point, causing water vapor to condense near the surface. Cirrus clouds are high and icy; cumulus are puffy mid-level clouds; stratus are low, layered — but fog is closest to the ground.</div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 09</span>
+      <span class="q-tag">Physics / Light</span>
+      <p class="q-text">Which statement best describes wavelengths of sunlight that are longer than 700 nanometers?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">These wavelengths form the infrared part of the spectrum.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">These wavelengths form the ultraviolet light of the spectrum.</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">These wavelengths are shorter than the wavelengths of visible light.</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">These wavelengths are part of the visible light spectrum.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> These wavelengths form the infrared part of the spectrum.</div>
+    <div class="explanation">Visible light spans roughly 380–700 nm. Wavelengths <strong>longer than 700 nm</strong> fall into the <strong>infrared region</strong>, which we feel as heat. Ultraviolet (UV) light is shorter than 380 nm, on the other side of visible light.</div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 10</span>
+      <span class="q-tag">Climate</span>
+      <p class="q-text">How does altitude affect climate patterns in a region?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">Areas at high elevations have cooler temperatures.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Air continues to warm as it rises to a higher elevation.</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Tropical regions do not have many differences in altitude.</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">High-altitude areas have less variation in seasonal temperatures.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Areas at high elevations have cooler temperatures.</div>
+    <div class="explanation">Temperature decreases with altitude at about <strong>3.5°F per 1,000 feet</strong> (environmental lapse rate). This is why mountain peaks are cold even in tropical areas. Air expands and cools as it rises, so higher elevations are consistently cooler.</div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 11</span>
+      <span class="q-tag">Earth History</span>
+      <p class="q-text">Scientists believe that some mass extinction events are possibly caused by asteroids, volcanic activity, or climate change. How many mass extinctions have occurred on Earth in the last 4.6 billion years?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">0</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">1</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">5</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">10</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 5</div>
+    <div class="explanation">Earth has experienced <strong>five major mass extinction events</strong> (the "Big Five"): the Ordovician-Silurian, Late Devonian, Permian-Triassic (the largest, wiping out ~96% of species), Triassic-Jurassic, and Cretaceous-Paleogene (which ended the non-avian dinosaurs).</div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 12</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">What term specifically describes small chunks of rocks and debris in space that burn up in Earth's atmosphere?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Meteorites</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Meteoroids</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Meteors</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Meteorides</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Meteors</div>
+    <div class="explanation">A <strong>meteoroid</strong> is a small rock in space. When it enters Earth's atmosphere and burns up (creating a streak of light), it becomes a <strong>meteor</strong> (a "shooting star"). If it survives and lands on Earth, it's called a <strong>meteorite</strong>. "Meteorides" is not a real term.</div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 13</span>
+      <span class="q-tag">Earth Science</span>
+      <p class="q-text">A scientist is observing surface groundwater features to determine sources of groundwater. Which is one surface feature that the scientist can observe and map?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">Spring</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Saturated zone</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Aquifer</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Water table</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Spring</div>
+    <div class="explanation">A <strong>spring</strong> is a place where groundwater naturally flows out to the surface — it's directly observable and mappable. The saturated zone, aquifer, and water table are all underground features that cannot be seen from the surface without drilling or instruments.</div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 14</span>
+      <span class="q-tag">Climate</span>
+      <p class="q-text">Which describes one characteristic of both El Niño and La Niña?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Both are causes of long-term climate change.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Both create warmer water.</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Both occur in the Pacific Ocean.</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Both are causes of hurricane activity.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Both occur in the Pacific Ocean.</div>
+    <div class="explanation">El Niño and La Niña are opposite phases of the <strong>El Niño-Southern Oscillation (ENSO)</strong>, both centered in the <strong>tropical Pacific Ocean</strong>. El Niño warms Pacific waters while La Niña cools them — they are weather patterns, not causes of long-term climate change.</div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 15</span>
+      <span class="q-tag">Weather / Safety</span>
+      <p class="q-text">Sara was caught in a thunderstorm while outdoors. She immediately makes sure that she is not near any tall structures or trees. What is Sara most likely trying to avoid?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">Being struck by lightning</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Being hit by thunder</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Being caught by falling hail</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Being carried away by strong winds</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Being struck by lightning</div>
+    <div class="explanation"><strong>Lightning</strong> tends to strike the tallest objects in an area. Trees and tall structures act as conductors. Standing near them greatly increases the risk of being struck. Thunder is sound and cannot physically harm someone; wind and hail are not specifically linked to tall objects.</div>
+  </div>
+
+  <!-- Q16 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 16</span>
+      <span class="q-tag">Earth Science</span>
+      <p class="q-text">A scientist observes a geyser erupting. Which two objects must be interacting beneath the surface?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Well and spring</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Spring and magma</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Magma and groundwater</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Groundwater and unsaturated zone</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Magma and groundwater</div>
+    <div class="explanation">A geyser erupts when <strong>groundwater is heated by magma</strong> deep underground, building pressure until steam and water shoot out through a vent. Without both heat (magma) and water (groundwater), no geyser can form.</div>
+  </div>
+
+  <!-- Q17 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 17</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">If astronomers discovered a new inner planet in the solar system, which characteristic would it most likely have?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Large size</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Gaseous composition</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Many moons</span></div>
+      <div class="option correct"><span class="option-letter">D</span><span class="option-text">Fast revolution</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Fast revolution</div>
+    <div class="explanation">Inner planets (Mercury, Venus, Earth, Mars) are smaller, rocky, and orbit close to the Sun — meaning they have <strong>shorter, faster orbital periods</strong> (Mercury takes only 88 days). Gas giants (Jupiter, Saturn, etc.) are large, gaseous, and have many moons, but those are outer planets.</div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 18</span>
+      <span class="q-tag">Space Exploration</span>
+      <p class="q-text">Which tools are currently used to collect images during space exploration?</p>
+    </div>
+    <div class="options">
+      <div class="option correct"><span class="option-letter">A</span><span class="option-text">Rovers and satellites</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Satellites and rockets</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Rockets and space shuttles</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Space shuttles and rovers</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Rovers and satellites</div>
+    <div class="explanation"><strong>Rovers</strong> (like NASA's Curiosity and Perseverance on Mars) and <strong>satellites/space telescopes</strong> are actively used to capture images. Rockets are launch vehicles — they transport equipment but don't capture images themselves. The Space Shuttle program ended in 2011.</div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 19</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">What must happen for most areas on Earth to experience all four seasons?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">The Sun must reach its highest point in the sky.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">The Northern Hemisphere must experience winter.</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">The axis must be tilted at a certain angle that remains unchanged.</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">The north end of Earth's axis must always point away from the Sun.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> The axis must be tilted at a certain angle that remains unchanged.</div>
+    <div class="explanation">Earth's <strong>axial tilt of about 23.5°</strong> is what causes seasons. Because the tilt remains constant (pointing toward Polaris), different parts of Earth receive varying amounts of direct sunlight as Earth orbits the Sun throughout the year, producing spring, summer, fall, and winter.</div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 20</span>
+      <span class="q-tag">Astronomy</span>
+      <p class="q-text">In December, a city in the Southern Hemisphere has warm weather all month long. What causes this to happen?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">The city experiences fewer hours of daylight.</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">The city is experiencing a winter solstice.</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">There is a high concentration of the Sun's rays in that region.</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">The Sun reaches its highest point in the sky during this month.</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> There is a high concentration of the Sun's rays in that region.</div>
+    <div class="explanation">In December, the Southern Hemisphere is tilted <strong>toward</strong> the Sun, so sunlight strikes at a more direct angle — creating a high concentration of solar energy and <strong>summer warmth</strong>. This is the opposite of the Northern Hemisphere, which experiences winter in December.</div>
+  </div>
+
+  <!-- Q21 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 21</span>
+      <span class="q-tag">Earth Science</span>
+      <p class="q-text">Which term describes erosion?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Creates small particles</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Hardens rock fragments</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Transports solid materials</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Dissolves rock components</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Transports solid materials</div>
+    <div class="explanation"><strong>Erosion</strong> is the process by which weathered rock and soil particles are <strong>transported</strong> (moved) by wind, water, ice, or gravity. <em>Weathering</em> creates small particles; <em>chemical weathering</em> can dissolve rock — but erosion specifically refers to the movement and carrying away of materials.</div>
+  </div>
+
+  <!-- Q22 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 22</span>
+      <span class="q-tag">Atmosphere</span>
+      <p class="q-text">Which phrase defines altitude?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">How tightly molecules are packed</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">A column of air pushing on an area</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">The force pushing on an area or a surface</span></div>
+      <div class="option correct"><span class="option-letter">D</span><span class="option-text">The height of a given point above sea level</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> The height of a given point above sea level</div>
+    <div class="explanation"><strong>Altitude</strong> is defined as the <strong>height of a location above sea level</strong>. Air density describes how tightly molecules are packed; a column of air pushing down relates to air pressure. "Force on a surface" is the definition of pressure in general.</div>
+  </div>
+
+  <!-- Q23 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 23</span>
+      <span class="q-tag">Space Exploration</span>
+      <p class="q-text">Which is a future NASA research project?</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Using a probe to collect data</span></div>
+      <div class="option wrong"><span class="option-letter">B</span><span class="option-text">Conducting research from a space station</span></div>
+      <div class="option correct"><span class="option-letter">C</span><span class="option-text">Collecting samples on an asteroid</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Conducting a space mission with no people</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Collecting samples on an asteroid</div>
+    <div class="explanation">NASA has planned <strong>asteroid sample-return missions</strong> — OSIRIS-REx successfully collected samples from asteroid Bennu and returned them to Earth. Future missions aim to further explore and retrieve material from asteroids to learn about the early solar system. Probes and space station research are already ongoing, not "future" plans.</div>
+  </div>
+
+  <!-- Q24 -->
+  <div class="question-card">
+    <div class="q-header">
+      <span class="q-number">Q 24</span>
+      <span class="q-tag">Astronomy / Physics</span>
+      <p class="q-text">Energy released by fusion in the Sun is initially in the form of...</p>
+    </div>
+    <div class="options">
+      <div class="option wrong"><span class="option-letter">A</span><span class="option-text">Visible light</span></div>
+      <div class="option correct"><span class="option-letter">B</span><span class="option-text">Gamma rays</span></div>
+      <div class="option wrong"><span class="option-letter">C</span><span class="option-text">Ultraviolet light</span></div>
+      <div class="option wrong"><span class="option-letter">D</span><span class="option-text">Infrared radiation</span></div>
+    </div>
+    <div class="answer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Gamma rays</div>
+    <div class="explanation">Nuclear fusion in the Sun's core releases energy as extremely high-energy <strong>gamma rays</strong>. These photons take thousands of years to travel from the core to the surface, where they are re-emitted at lower energies (mostly as visible light and infrared) before reaching Earth.</div>
+  </div>
+
+  <!-- BONUS SECTION -->
+  <div class="section-title">✦ Bonus Questions</div>
+
+  <div class="bonus-card">
+    <div class="bonus-q">🌡️ What is the difference between weather and climate?</div>
+    <div class="bonus-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Weather is short-term; climate is the long-term average.</div>
+    <div class="bonus-exp"><strong>Weather</strong> refers to atmospheric conditions (temperature, rain, wind) over a short period. <strong>Climate</strong> describes the average weather patterns of a region over at least 30 years. "Climate is what you expect; weather is what you get."</div>
+  </div>
+
+  <div class="bonus-card">
+    <div class="bonus-q">🌍 What layer of Earth is responsible for the movement of tectonic plates?</div>
+    <div class="bonus-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> The asthenosphere (upper mantle)</div>
+    <div class="bonus-exp">The <strong>asthenosphere</strong> is a semi-fluid layer of the upper mantle. Heat from Earth's interior creates convection currents here, which slowly move the rigid tectonic plates above it, causing earthquakes, volcanoes, and mountain building.</div>
+  </div>
+
+  <div class="bonus-card">
+    <div class="bonus-q">⭐ What are the stages of a star's life cycle (for a star like our Sun)?</div>
+    <div class="bonus-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Nebula → Protostar → Main Sequence → Red Giant → White Dwarf</div>
+    <div class="bonus-exp">Stars form from clouds of gas and dust (<strong>nebula</strong>). Gravity collapses the cloud into a <strong>protostar</strong>, which begins fusion and enters the long <strong>main sequence</strong> phase. It then expands into a <strong>red giant</strong> and eventually sheds its outer layers, leaving a dense <strong>white dwarf</strong>.</div>
+  </div>
+
+  <div class="bonus-card">
+    <div class="bonus-q">💧 What is the water cycle, and what are its four main stages?</div>
+    <div class="bonus-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Evaporation → Condensation → Precipitation → Collection</div>
+    <div class="bonus-exp">The water cycle is Earth's continuous movement of water. <strong>Evaporation</strong> turns liquid water into vapor; <strong>condensation</strong> forms clouds; <strong>precipitation</strong> brings water back as rain or snow; <strong>collection</strong> gathers water in oceans, lakes, and rivers — then the cycle repeats.</div>
+  </div>
+
+  <div class="bonus-card">
+    <div class="bonus-q">🌑 What causes a solar eclipse?</div>
+    <div class="bonus-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> The Moon passes between Earth and the Sun, blocking sunlight.</div>
+    <div class="bonus-exp">A <strong>solar eclipse</strong> occurs when the Moon aligns directly between Earth and the Sun, casting a shadow on Earth. A <strong>total solar eclipse</strong> briefly blocks all direct sunlight. A <strong>lunar eclipse</strong> is the opposite — Earth's shadow falls on the Moon.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Earth &amp; Space Science Study Guide &nbsp;·&nbsp; 24 Questions + 5 Bonus &nbsp;·&nbsp; All answers explained</p>
+</div>
+
+</body>
+</html>
